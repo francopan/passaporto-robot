@@ -1,0 +1,24 @@
+{
+  "name": "passaporto-robot",
+  "version": "1.0.0",
+  "description": "robot to check dates for passport",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "build": "pkg . --out-path target",
+    "postbuild": "Xcopy /Y /H /E node_modules\\puppeteer\\.local-chromium target\\puppeteer"
+  },
+  "pkg": {
+    "scripts": "*.js",
+    "assets": "assets/**/*"
+  },
+  "author": "franco.pan",
+  "license": "MIT",
+  "dependencies": {
+    "dateformat": "^3.0.3",
+    "play-sound": "^1.1.3",
+    "puppeteer": "^1.14.0"
+  }
+}
