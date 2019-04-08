@@ -1,5 +1,4 @@
 const fs = require('fs');
-const tz = require('./assets/tz.json');
 const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 const puppeteer = require('puppeteer');
 const dateFormat = require('dateformat');
@@ -8,7 +7,6 @@ const moment = require('moment-timezone');
 
 // Global Variables and set-ups
 moment.tz.setDefault(config.timezoneCode);
-moment.tz.add(tz.zones);
 var exports = module.exports = {};
 const isPkg = typeof process.pkg !== 'undefined';
 const urls = {
