@@ -1,9 +1,8 @@
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 const puppeteer = require('puppeteer');
-const dateFormat = require('dateformat');
-const player = require('play-sound')({player: config.mPlayerPath});
 const moment = require('moment-timezone');
+var beep = require('beepbeep')
 
 // Global Variables and set-ups
 moment.tz.setDefault(config.timezoneCode);
@@ -36,12 +35,19 @@ exports.main = async function main(pageLoaded) {
     let triesCounter = 0;
 
     //Start Browser (Chrome/Chromium)
-    const browser = await puppeteer.launch({executablePath: isPkg ? config.chromePath: puppeteer.executablePath()});
+    const browser = await puppeteer.launch({
+        executablePath: isPkg ? config.chromePath: puppeteer.executablePath(),
+        headless: true, // Speech synth API doesn't work in headless. crbug.com/815388
+        args: ['--window-size=0,0','--window-position=0,0',]
+    });
     let page = pageLoaded !== null? pageLoaded : await browser.newPage(); 
 
     // Find Dates
-    await page.goto(urls.availability);
-    while(found === false) {
+     await Promise.all([
+        page.goto(urls.availability),
+        page.waitForNavigation()
+    ]);
+    while(true) {
         console.log("Loading availability page");
         await Promise.all([
             page.goto(urls.availability),
@@ -66,30 +72,25 @@ exports.main = async function main(pageLoaded) {
 
         let date = moment(dataScraped[0].substring(0,10));
         if (date <= limit) {
+            found = true;
             for (i = 0; i < 10; i++) {
-                player.play('assets/sounds/bell.mp3', function(err){
-                    if (err) throw err
-                });
-				console.log('FOOOOOOOOOOOOOOOOOOOOOOUNDDDDDDD: ' + date.format('YYYY-MM-DD') + ' (' + dataScraped[1] + ')');
+                beep(3, 1000);
+				console.log('FOOOOOOOOOOOOOOOOOOOOOOUNDDDDDDD: ' + date.format('DD/MM/YYYY') + ' (' + dataScraped[1] + ')');
                 await this.timeout(2500);  
             }
         } else {
-            console.log('Sorry, no date availabe. Found ' + date.format('YYYY-MM-DD') + 
+            found = false;
+            console.log('Sorry, no date availabe. Found ' + date.format('DD/MM/YYYY') + 
                 ' (' + dataScraped[1] + ')' + ' @ ' + moment().format() + 
-                ', Limit: ' + limit.format('YYYY-MM-DD')
+                ', Limit: ' + limit.format('DD/MM/YYYY')
             );
-
             if (triesCounter++ >= 15) { //Every 15 minutes
-                let audio = player.play('assets/sounds/no.mp3', function(err){
-                    if (err) throw err
-                })
                 await this.timeout(2000);
-                audio.kill();
                 triesCounter = 0;
             }
         }
-        console.log('Re-trying in ' + config.timeout + 's...');
-        await this.timeout(config.timeout * 1000);
+        console.log('Re-trying in ' + (found? 10 : config.timeout) + 's...');
+        await this.timeout((found? 10 : config.timeout) * 1000);
     }        
     await browser.close();
 }

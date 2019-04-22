@@ -1,9 +1,11 @@
 {
-    "mPlayerPath": "C:\\Program Files (x86)\\MPlayer for Windows\\MPlayer.exe",
     "chromePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    "limitDate": "2019-06-27",
+    "startDate": "2019-04-22",
+    "limitDate": "2019-04-27",
     "timeout": 60,
-    "username": "",
-    "password": "",
-    "timezoneCode": "Europe/Rome"
+    "username": "BRNFNC95H02Z602B",
+    "password": "Fbruneta2019!",
+    "placesBlackList": [ ],
+    "timezoneCode": "Europe/Rome",
+    "headless": false
 }
