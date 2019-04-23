@@ -1,11 +1,11 @@
 {
     "chromePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     "startDate": "2019-04-22",
-    "limitDate": "2019-07-15",
-    "timeout": 60,
-    "username": "BRNFNC95H02Z602B",
-    "password": "Fbruneta2019!",
-    "placesBlackList": ["Via San Cristoforo, 4"],
+    "limitDate": "2019-07-18",
+    "timeout": 20,
+    "username": "",
+    "password": "",
+    "placesBlackList": ["Via San Cristoforo, 3"],
     "timezoneCode": "Europe/Rome",
     "headless": true
 }

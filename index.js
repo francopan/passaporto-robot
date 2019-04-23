@@ -1,12 +1,11 @@
 const fs = require('fs');
-const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 const puppeteer = require('puppeteer');
 const moment = require('moment-timezone');
-var beep = require('beepbeep')
+const beep = require('beepbeep');
+const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 
-moment.tz.setDefault(config.timezoneCode);
 var exports = module.exports = {};
-const isPkg = typeof process.pkg !== 'undefined';
+const isPkg = typeof process.pkg !== 'undefined'; // Check wheter is executable (true) or running in node (false)
 const urls = {
     availability: 'https://www.passaportonline.poliziadistato.it/GestioneDisponibilitaAction.do?codop=getDisponibilitaCittadino',
     login: 'https://www.passaportonline.poliziadistato.it/logInCittadino.do'
@@ -25,12 +24,13 @@ exports.login = async function login(page) {
   }
 
 exports.main = async function main(pageLoaded) { 
-    const limit  = moment(config.limitDate);
+    moment.tz.setDefault(config.timezoneCode);
+    const limitDate  = moment(config.limitDate);
     let startDate = moment(config.startDate);
     let found = false;
     let triesCounter = 0;
 
-    //Start Browser (Chrome/Chromium)
+    //Start Browser (Chrome/Chromium) then load page
     const browser = await puppeteer.launch({
         executablePath: isPkg ? config.chromePath: puppeteer.executablePath(),
         headless: config.headless
@@ -39,7 +39,7 @@ exports.main = async function main(pageLoaded) {
 
     while(true) {
 
-        if (startDate > limit) { // Restart process
+        if (startDate > limitDate) { // Restart process
             startDate = moment(config.startDate);
         }
 
@@ -56,6 +56,7 @@ exports.main = async function main(pageLoaded) {
             console.log('Starting Session...')
             await this.login(page).then(() => {
                 console.log('Logged in');
+                console.log("Loading availability page");
                 page.goto(urls.availability + '&previous=false&data=' + startDate.format('DD-MM-YYYY')),
                 page.waitForNavigation();
             });
@@ -78,35 +79,32 @@ exports.main = async function main(pageLoaded) {
         dataScraped[1] = dataScraped[1].filter(r => !config.placesBlackList.includes(r.name)); // Remove blacklisted cities
         let date = moment(dataScraped[0].substring(0,10)); // Get scraped date
         
-        if (dataScraped[1].length == 0) { //No cities found
+        if (dataScraped[1].length == 0) { // No cities found
+            found = false;
             startDate = date;
             console.log("No cities Found! Searching for the next day: " + startDate.format('DD-MM-YYYY'));
-            await this.timeout(800);  
-            continue;
-        }
-
-        if (date <= limit) {
-            found = true;
-            for (i = 0; i < 10; i++) {
-                beep(3, 1000);
-				console.log('FOOOOOOOOOOOOOOOOOOOOOOUNDDDDDDD: ' + date.format('DD/MM/YYYY') + ' (' + JSON.stringify(dataScraped[1]) + ')');
-                await this.timeout(2500);  
-            }
         } else {
-            found = false;
-            console.log('Sorry, no date availabe. Found ' + date.format('DD/MM/YYYY') + 
-                 ' (' + JSON.stringify(dataScraped[1]) + ')' + ' @ ' + moment().format() + 
-                ', Limit: ' + limit.format('DD/MM/YYYY')
-            );
-            if (triesCounter++ >= 15) { //Every 15 minutes
-                await this.timeout(2000);
-                triesCounter = 0;
+            if (date <= limitDate) {
+                found = true;
+                for (i = 0; i < 10; i++) {
+                    beep(3, 1000);
+                    console.log('FOOOOOOOOOOOOOOOOOOOOOOUNDDDDDDD: ' + date.format('DD/MM/YYYY') + ' (' + JSON.stringify(dataScraped[1]) + ')');
+                    await this.timeout(2500);  
+                }
+            } else {
+                found = false;
+                console.log('Sorry, no date availabe. Found ' + date.format('DD/MM/YYYY') + 
+                     ' (' + JSON.stringify(dataScraped[1]) + ')' + ' @ ' + moment().format() + 
+                    ', Limit: ' + limitDate.format('DD/MM/YYYY')
+                );
+                if (triesCounter++ >= 15) { //Every 15 minutes
+                    await this.timeout(2000);
+                    triesCounter = 0;
+                }
             }
         }
         console.log('Re-trying in ' + (found? 10 : config.timeout) + 's...');
         await this.timeout((found? 10 : config.timeout) * 1000);
     }
-    await browser.close();
 }
-
 exports.main(null);
