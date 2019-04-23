@@ -24,5 +24,3 @@ npm run build
 ## Author and Credits
 ### Author
 [Franco Brunetta Pan](http://www.francopan.com.br)
-### Sounds
-Thanks to [SoundBible](http://soundbible.com/) for distributing free audio unde CC 3.0.
