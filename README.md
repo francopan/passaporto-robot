@@ -1,6 +1,6 @@
-# PASSAPORTO ROBOT
+# PASSAPORTO ROBOT (Data Crawler)
 
-This app goes to the website of Passport Request to check wheter there is a date available for an appointment within the parameters specified.
+This app goes to the website of the Italian Passport Request to check wheter there is a date available for an appointment within the parameters specified.
 
 ## Prerequisites
 ~~~
